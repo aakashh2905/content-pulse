@@ -1,0 +1,11 @@
+{
+  "name": "aspi-content-pulse-prototype",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "start": "node --env-file-if-exists=.env.local server.js",
+    "start:demo": "node server.js",
+    "check": "node --check server.js && node --check src/apify.js && node --check src/openai.js && node --check src/industry.js && node --check src/storage/sharepoint.js && node --check src/storage/index.js && node --check src/export.js && node --check src/campaigns.js && node --check src/scheduler.js && node --check src/pipeline.js && node --check public/app.js && node --check public/linkedin-collector.js"
+  }
+}

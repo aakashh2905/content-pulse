@@ -1,0 +1,426 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>ASPI Content Pulse</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Instrument+Sans:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap"
+      rel="stylesheet"
+    />
+    <link rel="stylesheet" href="/styles.css" />
+  </head>
+  <body>
+    <div class="ambient-orb orb-one" aria-hidden="true"></div>
+    <div class="ambient-orb orb-two" aria-hidden="true"></div>
+    <div class="ambient-orb orb-three" aria-hidden="true"></div>
+    <div class="app-shell">
+      <header class="topbar">
+        <div class="brand-mark" aria-hidden="true">AP</div>
+        <div class="brand-copy">
+          <span>ASPI Content Pulse</span>
+          <strong>Internal agency growth cockpit</strong>
+        </div>
+        <div id="status-badges" class="status-badges" aria-live="polite"></div>
+      </header>
+
+      <main class="workspace-grid">
+        <aside class="panel command-panel">
+          <div class="panel-heading">
+            <span class="section-kicker">Pulse Command</span>
+            <h1>Scale client pages with live signals</h1>
+            <p id="context-summary">Agency / Social Team | Client growth | Global | English | Run All Skills</p>
+            <div class="quick-guide" aria-label="Recommended workflow">
+              <span>1. Add client</span>
+              <span>2. Add keyword</span>
+              <span>3. Choose market</span>
+              <span>4. Run insights</span>
+            </div>
+          </div>
+
+          <form id="pipeline-form" class="control-form">
+            <div class="hidden-config" aria-hidden="true">
+              <input id="skillLocation" name="skillLocation" type="hidden" value="C:\Users\Win 10\.codex\skills" />
+              <input id="uiType" name="uiType" type="hidden" value="simple local web page" />
+              <input id="scrapingMethod" name="scrapingMethod" type="hidden" value="Apify + OpenAI" />
+              <input type="checkbox" name="outputFormats" value="markdown table" checked />
+              <input type="checkbox" name="outputFormats" value="json" checked />
+              <input type="checkbox" name="platforms" value="instagram" checked />
+            </div>
+
+            <section class="control-section priority-section">
+              <div class="section-title-row">
+                <span>01</span>
+                <h2>Start here</h2>
+              </div>
+
+              <label class="field">
+                <span>Client / brand</span>
+                <input id="clientName" name="clientName" type="text" placeholder="Example: FitFuel, Aura Clinics, B2B SaaS client" />
+                <small class="field-hint">Keeps every run connected to the right internal client account.</small>
+              </label>
+
+              <label class="field">
+                <span>What should we research?</span>
+                <textarea
+                  id="keywords"
+                  name="keywords"
+                  placeholder="Example: AI marketing, skincare routine, lead generation, real estate reels"
+                  required
+                ></textarea>
+                <small class="field-hint">Use one clear content topic. The system will expand it into stronger Instagram search seeds.</small>
+              </label>
+
+              <div class="preset-row" aria-label="Quick keyword examples">
+                <button type="button" class="preset-chip" data-keyword="AI marketing">AI marketing</button>
+                <button type="button" class="preset-chip" data-keyword="skincare routine">Skincare</button>
+                <button type="button" class="preset-chip" data-keyword="lead generation">Lead gen</button>
+                <button type="button" class="preset-chip" data-keyword="real estate reels">Real estate</button>
+              </div>
+            </section>
+
+            <section class="control-section">
+              <div class="section-title-row">
+                <span>02</span>
+                <h2>Market focus</h2>
+              </div>
+
+              <div class="field-pair">
+                <label class="field">
+                  <span>Goal</span>
+                  <select id="primaryGoal" name="primaryGoal">
+                    <option value="pipeline" selected>Drive leads</option>
+                    <option value="authority">Authority</option>
+                    <option value="community">Community</option>
+                    <option value="product">Launches</option>
+                  </select>
+                </label>
+                <label class="field">
+                  <span>Target region</span>
+                  <select id="targetRegion" name="targetRegion">
+                    <option value="Global" selected>Global</option>
+                    <option value="India">India</option>
+                    <option value="UAE">UAE</option>
+                    <option value="United States">United States</option>
+                    <option value="United Kingdom">United Kingdom</option>
+                    <option value="Singapore">Singapore</option>
+                    <option value="Australia">Australia</option>
+                    <option value="Canada">Canada</option>
+                    <option value="Bangalore">Bangalore</option>
+                    <option value="Mumbai">Mumbai</option>
+                    <option value="Delhi NCR">Delhi NCR</option>
+                  </select>
+                </label>
+              </div>
+
+              <div class="preset-row" aria-label="Quick region options">
+                <button type="button" class="preset-chip" data-region="Global">Global</button>
+                <button type="button" class="preset-chip" data-region="India">India</button>
+                <button type="button" class="preset-chip" data-region="UAE">UAE</button>
+                <button type="button" class="preset-chip" data-region="United States">US</button>
+              </div>
+
+              <div class="field-pair">
+                <label class="field">
+                  <span>Custom region</span>
+                  <input id="customRegion" name="customRegion" type="text" placeholder="Dubai, Chennai, London" />
+                  <small class="field-hint">Overrides the dropdown when filled.</small>
+                </label>
+
+                <label class="field">
+                  <span>Output language</span>
+                  <select id="outputLanguage" name="outputLanguage">
+                    <option value="english" selected>English</option>
+                    <option value="auto">Auto from voice samples</option>
+                    <option value="hinglish">Hinglish</option>
+                    <option value="hindi">Hindi</option>
+                    <option value="kannada">Kannada</option>
+                    <option value="tamil">Tamil</option>
+                    <option value="telugu">Telugu</option>
+                    <option value="malayalam">Malayalam</option>
+                    <option value="marathi">Marathi</option>
+                    <option value="bengali">Bengali</option>
+                    <option value="spanish">Spanish</option>
+                    <option value="french">French</option>
+                    <option value="arabic">Arabic</option>
+                  </select>
+                  <small class="field-hint">English is the safe default for internal review.</small>
+                </label>
+              </div>
+            </section>
+
+            <details class="control-section settings-panel" open>
+              <summary>
+                <span class="summary-number">03</span>
+                <span>
+                  <strong>Improve results</strong>
+                  <small>Add competitors or adjust the search if needed</small>
+                </span>
+              </summary>
+
+              <label class="field">
+                <span>Competitor / reference handles</span>
+                <textarea id="competitors" name="competitors" placeholder="@competitor, @creator, @client_reference"></textarea>
+                <small class="field-hint">Optional, but it helps when a keyword is broad or weak.</small>
+              </label>
+
+              <div class="field-pair">
+                <label class="field">
+                  <span>Lookback</span>
+                  <input id="lookbackDays" name="lookbackDays" type="number" min="1" max="30" value="7" />
+                </label>
+
+                <label class="field">
+                  <span>Max posts</span>
+                  <input id="maxItemsPerPlatform" name="maxItemsPerPlatform" type="number" min="1" max="25" value="10" />
+                </label>
+              </div>
+
+              <label class="field">
+                <span>Skill to run</span>
+                <select id="runTarget" name="runTarget">
+                  <option value="run-all" selected>Run all skills</option>
+                  <option value="content-scraper">Content scraper only</option>
+                  <option value="content-validator">Validator output</option>
+                  <option value="my-voice-writer">Voice writer output</option>
+                  <option value="hook-generator">Hook generator output</option>
+                </select>
+                <small class="field-hint">Recommended: Run all skills.</small>
+              </label>
+
+              <details class="advanced-panel">
+                <summary>Advanced writing controls</summary>
+                <div class="field-pair">
+                  <label class="field">
+                    <span>Industry</span>
+                    <select id="industryPreset" name="industryPreset">
+                      <option value="agency-social" selected>Agency / Social Team</option>
+                      <option value="b2b-saas">B2B SaaS / Thought Leadership</option>
+                      <option value="creator-education">Creator Brand / Education</option>
+                      <option value="d2c-brand">D2C Brand / Social Commerce</option>
+                    </select>
+                  </label>
+
+                  <label class="field">
+                    <span>Team</span>
+                    <select id="teamModel" name="teamModel">
+                      <option value="agency-team" selected>Agency team</option>
+                      <option value="in-house-marketing">In-house marketing</option>
+                      <option value="founder-led">Founder-led brand</option>
+                      <option value="creator-ops">Creator ops</option>
+                    </select>
+                  </label>
+                </div>
+
+                <label class="field">
+                  <span>Topic override</span>
+                  <input
+                    id="topicOverride"
+                    name="topicOverride"
+                    type="text"
+                    placeholder="Optional topic for writer and hook stages"
+                  />
+                </label>
+
+                <label class="field">
+                  <span>Voice samples</span>
+                  <textarea
+                    id="voiceSamples"
+                    name="voiceSamples"
+                    placeholder="Paste past scripts here when you want a stronger voice match."
+                  ></textarea>
+                </label>
+
+                <label class="toggle">
+                  <input id="enableTranscription" name="enableTranscription" type="checkbox" />
+                  <span>Try transcript enrichment</span>
+                </label>
+              </details>
+            </details>
+
+            <details class="control-section settings-panel">
+              <summary>
+                <span class="summary-number">04</span>
+                <span>
+                  <strong>Save as daily campaign</strong>
+                  <small>Only needed for repeat client scans</small>
+                </span>
+              </summary>
+
+              <label class="field">
+                <span>Campaign name</span>
+                <input id="campaignName" name="campaignName" type="text" placeholder="Client weekly trend scan" />
+              </label>
+
+              <div class="field-pair">
+                <label class="field">
+                  <span>Daily run</span>
+                  <input id="campaignScheduleTime" name="campaignScheduleTime" type="time" value="09:00" />
+                </label>
+
+                <label class="field">
+                  <span>Status</span>
+                  <select id="campaignStatus" name="campaignStatus">
+                    <option value="active" selected>Active</option>
+                    <option value="paused">Paused</option>
+                  </select>
+                </label>
+              </div>
+
+              <div class="button-row">
+                <button id="save-campaign-button" class="secondary-button" type="button">Save campaign</button>
+                <button id="run-due-button" class="ghost-button" type="button">Run due</button>
+              </div>
+            </details>
+
+            <div class="run-card">
+              <p>Recommended for daily work: run all skills to get research cards, content buckets, script, and hooks in one pass.</p>
+              <button id="submit-button" class="submit-button" type="submit">Run client insights</button>
+            </div>
+          </form>
+        </aside>
+
+        <section class="results-column">
+          <div class="panel status-panel">
+            <div>
+              <span class="section-kicker">Run status</span>
+              <div id="run-meta" class="run-meta">Submit the form to generate a new run.</div>
+              <div id="run-steps" class="run-steps" aria-label="Run progress">
+                <span class="step-pill active">Brief</span>
+                <span class="step-pill">Trends</span>
+                <span class="step-pill">Angles</span>
+                <span class="step-pill">Script</span>
+              </div>
+              <div class="run-actions" aria-label="Export completed run">
+                <button id="download-excel-button" class="icon-button export-button" type="button" disabled>Download Excel</button>
+                <button id="download-report-button" class="icon-button export-button" type="button" disabled>Report</button>
+                <button id="download-json-button" class="icon-button export-button" type="button" disabled>JSON</button>
+              </div>
+            </div>
+            <div id="assumptions" class="assumptions"></div>
+          </div>
+
+          <section class="panel result-section hero-result">
+            <div class="section-header">
+              <div>
+                <span class="section-kicker">Trend board</span>
+                <h2>Trending Instagram signals</h2>
+              </div>
+              <div id="scrape-summary" class="compact-metric">No run yet.</div>
+            </div>
+            <div id="bucket-summary" class="bucket-summary"></div>
+            <div id="card-groups" class="card-groups"></div>
+          </section>
+
+          <section class="panel result-section">
+            <div class="section-header">
+              <div>
+                <span class="section-kicker">Regional lens</span>
+                <h2>Market decision brief</h2>
+              </div>
+            </div>
+            <div id="regional-brief" class="callout muted">Choose a region and run the pipeline to see local opportunity, language, and saturation signals.</div>
+            <div id="regional-grid" class="brief-grid regional-grid"></div>
+          </section>
+
+          <section class="panel result-section">
+            <div class="section-header">
+              <div>
+                <span class="section-kicker">Decision</span>
+                <h2>Industry relevance brief</h2>
+              </div>
+            </div>
+            <div id="industry-positioning" class="callout muted">No industry brief yet.</div>
+            <div id="industry-brief-grid" class="brief-grid"></div>
+          </section>
+
+          <section class="panel result-section">
+            <div class="section-header">
+              <div>
+                <span class="section-kicker">Validation</span>
+                <h2>Topic rankings</h2>
+              </div>
+            </div>
+            <div id="topic-recommendation" class="callout muted">No recommendation yet.</div>
+            <div class="table-wrap">
+              <table id="topic-table">
+                <thead>
+                  <tr>
+                    <th>Topic</th>
+                    <th>Posts</th>
+                    <th>Avg Views</th>
+                    <th>Avg ER</th>
+                    <th>Signal</th>
+                  </tr>
+                </thead>
+                <tbody></tbody>
+              </table>
+            </div>
+          </section>
+
+          <section class="panel result-section writing-grid">
+            <div class="script-card">
+              <div class="mini-header">
+                <div>
+                  <span class="section-kicker">Writer</span>
+                  <h2>Script</h2>
+                </div>
+                <button id="copy-script-button" class="icon-button" type="button">Copy</button>
+              </div>
+              <pre id="script-output" class="code-block">No script yet.</pre>
+            </div>
+            <div class="hook-card">
+              <div class="mini-header">
+                <div>
+                  <span class="section-kicker">Hooks</span>
+                  <h2>Openers</h2>
+                </div>
+                <button id="copy-hooks-button" class="icon-button" type="button">Copy</button>
+              </div>
+              <div id="recommended-hook" class="callout muted">No hook recommendation yet.</div>
+              <ol id="hooks-list" class="hook-list"></ol>
+            </div>
+          </section>
+
+          <details class="panel raw-output">
+            <summary>Raw JSON payload</summary>
+            <pre id="raw-output" class="code-block">No data yet.</pre>
+          </details>
+        </section>
+
+        <aside class="ops-rail">
+          <section class="panel rail-card">
+            <span class="section-kicker">System</span>
+            <h2>Runtime</h2>
+            <div id="storage-status" class="storage-status muted">Checking storage...</div>
+            <div id="scheduler-status" class="storage-status muted">Checking scheduler...</div>
+          </section>
+
+          <section class="panel rail-card">
+            <span class="section-kicker">LinkedIn</span>
+            <h2>Collector</h2>
+            <p class="rail-note">Use this launcher on a LinkedIn search/results page to collect visible posts, auto-scroll, and download Excel.</p>
+            <button id="copy-linkedin-collector-button" class="icon-button" type="button">Copy launcher</button>
+            <pre id="linkedin-collector-launcher" class="bookmarklet-code">javascript:(()=&gt;{const s=document.createElement('script');s.src='http://localhost:3000/linkedin-collector.js?v='+Date.now();document.body.appendChild(s);})();</pre>
+          </section>
+
+          <section class="panel rail-card">
+            <span class="section-kicker">Saved</span>
+            <h2>Campaigns</h2>
+            <div id="campaign-list" class="campaign-list"></div>
+          </section>
+
+          <section class="panel rail-card">
+            <span class="section-kicker">History</span>
+            <h2>Recent runs</h2>
+            <div id="run-history" class="history-list"></div>
+          </section>
+        </aside>
+      </main>
+    </div>
+
+    <script type="module" src="/app.js"></script>
+  </body>
+</html>

@@ -1,0 +1,12 @@
+.env
+.env.*
+!.env.example
+data/runs/*
+!data/runs/.gitkeep
+data/browser-captures/*
+data/campaigns.json
+.codex-runtime/
+server*.log
+npm-debug.log*
+__pycache__/
+*.pyc

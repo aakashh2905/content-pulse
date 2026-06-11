@@ -1,0 +1,29 @@
+{
+  "instagram": {
+    "actorId": "your-instagram-actor-id-or-username~actor-name",
+    "input": {
+      "keywords": "{{keywords}}",
+      "competitors": "{{competitors}}",
+      "lookbackDays": "{{lookbackDays}}",
+      "maxItems": "{{maxItemsPerPlatform}}"
+    }
+  },
+  "youtube": {
+    "actorId": "your-youtube-actor-id-or-username~actor-name",
+    "input": {
+      "keywords": "{{keywords}}",
+      "channels": "{{competitors}}",
+      "lookbackDays": "{{lookbackDays}}",
+      "maxItems": "{{maxItemsPerPlatform}}"
+    }
+  },
+  "x": {
+    "actorId": "your-x-actor-id-or-username~actor-name",
+    "input": {
+      "searchTerms": "{{keywords}}",
+      "accounts": "{{competitors}}",
+      "lookbackDays": "{{lookbackDays}}",
+      "maxItems": "{{maxItemsPerPlatform}}"
+    }
+  }
+}

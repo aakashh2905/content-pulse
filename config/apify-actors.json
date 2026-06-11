@@ -1,0 +1,11 @@
+{
+  "instagram": {
+    "actorId": "shu8hvrXbJbY3Eb9W",
+    "input": {
+      "keywords": "{{keywords}}",
+      "competitors": "{{competitors}}",
+      "lookbackDays": "{{lookbackDays}}",
+      "maxItems": "{{maxItemsPerPlatform}}"
+    }
+  }
+}
