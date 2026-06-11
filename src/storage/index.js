@@ -47,21 +47,6 @@ async function listLocalRuns(rootDir, limit) {
     .slice(0, limit);
 }
 
-function resolveRunResultPath(rootDir, runId) {
-  const safeRunId = String(runId || "").trim();
-  if (!/^[a-zA-Z0-9_.-]+$/.test(safeRunId)) {
-    throw new Error("Invalid run ID.");
-  }
-
-  const runsRoot = path.resolve(rootDir, "data", "runs");
-  const resultPath = path.resolve(runsRoot, safeRunId, "pipeline-result.json");
-  if (!resultPath.startsWith(`${runsRoot}${path.sep}`)) {
-    throw new Error("Invalid run path.");
-  }
-
-  return resultPath;
-}
-
 export async function getStorageStatus(rootDir) {
   const sharePoint = getSharePointStatus();
   return {
@@ -108,19 +93,4 @@ export async function listRecentRuns(rootDir, limit = 10) {
     source: "local",
     runs: await listLocalRuns(rootDir, limit),
   };
-}
-
-export async function readStoredRun(rootDir, runId) {
-  const resultPath = resolveRunResultPath(rootDir, runId);
-  try {
-    const raw = await readFile(resultPath, "utf8");
-    return JSON.parse(raw);
-  } catch (error) {
-    if (error?.code === "ENOENT") {
-      const notFound = new Error(`Run ${runId} was not found in local storage.`);
-      notFound.statusCode = 404;
-      throw notFound;
-    }
-    throw error;
-  }
 }

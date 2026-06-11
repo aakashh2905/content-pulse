@@ -1,20 +1,18 @@
 import { createServer } from "node:http";
-import { mkdir, readFile, stat, writeFile } from "node:fs/promises";
+import { readFile, stat } from "node:fs/promises";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
 
 import { deleteCampaign, listCampaigns, saveCampaign, updateCampaign } from "./src/campaigns.js";
-import { getRunExport, getTableRowsExport, normalizeTablePayload } from "./src/export.js";
 import { getRuntimeStatus, listStoredRuns, runPipeline } from "./src/pipeline.js";
 import { getSchedulerStatus, runCampaignNow, runDueCampaigns, startCampaignScheduler } from "./src/scheduler.js";
-import { readStoredRun } from "./src/storage/index.js";
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 const publicDir = path.join(__dirname, "public");
 const port = Number(process.env.PORT || 3000);
 const startedAt = new Date();
-const maxBodyBytes = Number(process.env.MAX_REQUEST_BODY_BYTES || 5_000_000);
+const maxBodyBytes = Number(process.env.MAX_REQUEST_BODY_BYTES || 1_000_000);
 const maxActiveRuns = Number(process.env.MAX_ACTIVE_RUNS || 1);
 const schedulerIntervalMs = Number(process.env.SCHEDULER_INTERVAL_MS || 60_000);
 let activeRunCount = 0;
@@ -40,9 +38,6 @@ function baseHeaders(extra = {}) {
   return {
     "X-Content-Type-Options": "nosniff",
     "Referrer-Policy": "strict-origin-when-cross-origin",
-    "Access-Control-Allow-Origin": "*",
-    "Access-Control-Allow-Methods": "GET, POST, PATCH, DELETE, OPTIONS",
-    "Access-Control-Allow-Headers": "Content-Type, Authorization",
     ...extra,
   };
 }
@@ -55,18 +50,6 @@ function sendJson(response, statusCode, payload) {
     }),
   });
   response.end(JSON.stringify(payload, null, 2));
-}
-
-function sendDownload(response, payload) {
-  const safeFileName = payload.fileName.replace(/[\r\n"]/g, "_");
-  response.writeHead(200, {
-    ...baseHeaders({
-      "Content-Type": payload.contentType,
-      "Cache-Control": "no-store",
-      "Content-Disposition": `attachment; filename="${safeFileName}"; filename*=UTF-8''${encodeURIComponent(payload.fileName)}`,
-    }),
-  });
-  response.end(payload.body);
 }
 
 function sendError(response, statusCode, message, details) {
@@ -150,73 +133,10 @@ async function runWithCapacity(work) {
   }
 }
 
-function formatCaptureId() {
-  return new Date().toISOString().replace(/[:.]/g, "-");
-}
-
-async function persistBrowserCapture(rootDir, input) {
-  const capture = {
-    captureId: formatCaptureId(),
-    capturedAt: new Date().toISOString(),
-    ...normalizeTablePayload(input),
-  };
-  const captureDir = path.join(rootDir, "data", "browser-captures");
-  await mkdir(captureDir, { recursive: true });
-  await writeFile(path.join(captureDir, `${capture.captureId}.json`), `${JSON.stringify(capture, null, 2)}\n`, "utf8");
-  return capture;
-}
-
-async function readBrowserCapture(rootDir, captureId) {
-  const safeCaptureId = String(captureId || "").trim();
-  if (!/^[a-zA-Z0-9_.-]+$/.test(safeCaptureId)) {
-    throw new HttpError(400, "Invalid capture ID.");
-  }
-
-  const captureRoot = path.resolve(rootDir, "data", "browser-captures");
-  const capturePath = path.resolve(captureRoot, `${safeCaptureId}.json`);
-  if (!capturePath.startsWith(`${captureRoot}${path.sep}`)) {
-    throw new HttpError(400, "Invalid capture path.");
-  }
-
-  try {
-    return JSON.parse(await readFile(capturePath, "utf8"));
-  } catch (error) {
-    if (error?.code === "ENOENT") {
-      throw new HttpError(404, `Capture ${captureId} was not found.`);
-    }
-    throw error;
-  }
-}
-
-function isBrowserCaptureExportPath(pathname) {
-  return new Set([
-    "/api/leads/export",
-    "/api/linkedin/export",
-    "/api/browser-leads/export",
-    "/api/browser-captures/export",
-    "/api/export-leads",
-  ]).has(pathname);
-}
-
-function isBrowserCaptureIngestPath(pathname) {
-  return new Set([
-    "/api/leads",
-    "/api/linkedin/ingest",
-    "/api/browser-leads",
-    "/api/browser-captures",
-  ]).has(pathname);
-}
-
 const server = createServer(async (request, response) => {
   const requestUrl = new URL(request.url, `http://${request.headers.host}`);
 
   try {
-    if (request.method === "OPTIONS") {
-      response.writeHead(204, baseHeaders({ "Access-Control-Max-Age": "86400" }));
-      response.end();
-      return;
-    }
-
     if (request.method === "GET" && requestUrl.pathname === "/api/health") {
       const status = await getRuntimeStatus(__dirname);
       sendJson(response, 200, {
@@ -248,52 +168,6 @@ const server = createServer(async (request, response) => {
       const limit = Number(requestUrl.searchParams.get("limit") || 10);
       const history = await listStoredRuns(__dirname, Number.isFinite(limit) ? limit : 10);
       sendJson(response, 200, { ok: true, history });
-      return;
-    }
-
-    if (request.method === "POST" && isBrowserCaptureExportPath(requestUrl.pathname)) {
-      const body = await readRequestBody(request);
-      const capture = await persistBrowserCapture(__dirname, body);
-      const exportPayload = getTableRowsExport(capture, requestUrl.searchParams.get("format") || "excel");
-      sendDownload(response, exportPayload);
-      return;
-    }
-
-    if (request.method === "POST" && isBrowserCaptureIngestPath(requestUrl.pathname)) {
-      const body = await readRequestBody(request);
-      const capture = await persistBrowserCapture(__dirname, body);
-      sendJson(response, 200, {
-        ok: true,
-        captureId: capture.captureId,
-        rows: capture.rows.length,
-        columns: capture.columns,
-        downloadUrl: `/api/browser-captures/${encodeURIComponent(capture.captureId)}/export?format=excel`,
-      });
-      return;
-    }
-
-    const browserCaptureExportRoute = requestUrl.pathname.match(/^\/api\/browser-captures\/([^/]+)\/export$/);
-    if (request.method === "GET" && browserCaptureExportRoute) {
-      const capture = await readBrowserCapture(__dirname, decodeURIComponent(browserCaptureExportRoute[1]));
-      const exportPayload = getTableRowsExport(capture, requestUrl.searchParams.get("format") || "excel");
-      sendDownload(response, exportPayload);
-      return;
-    }
-
-    const runExportRoute = requestUrl.pathname.match(/^\/api\/runs\/([^/]+)\/export$/);
-    if (request.method === "GET" && runExportRoute) {
-      const runId = decodeURIComponent(runExportRoute[1]);
-      const result = await readStoredRun(__dirname, runId);
-      const exportPayload = getRunExport(result, requestUrl.searchParams.get("format") || "excel");
-      sendDownload(response, exportPayload);
-      return;
-    }
-
-    const runDetailRoute = requestUrl.pathname.match(/^\/api\/runs\/([^/]+)$/);
-    if (request.method === "GET" && runDetailRoute) {
-      const runId = decodeURIComponent(runDetailRoute[1]);
-      const result = await readStoredRun(__dirname, runId);
-      sendJson(response, 200, { ok: true, result });
       return;
     }
 

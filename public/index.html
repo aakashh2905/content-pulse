@@ -293,11 +293,6 @@
                 <span class="step-pill">Angles</span>
                 <span class="step-pill">Script</span>
               </div>
-              <div class="run-actions" aria-label="Export completed run">
-                <button id="download-excel-button" class="icon-button export-button" type="button" disabled>Download Excel</button>
-                <button id="download-report-button" class="icon-button export-button" type="button" disabled>Report</button>
-                <button id="download-json-button" class="icon-button export-button" type="button" disabled>JSON</button>
-              </div>
             </div>
             <div id="assumptions" class="assumptions"></div>
           </div>
@@ -396,14 +391,6 @@
             <h2>Runtime</h2>
             <div id="storage-status" class="storage-status muted">Checking storage...</div>
             <div id="scheduler-status" class="storage-status muted">Checking scheduler...</div>
-          </section>
-
-          <section class="panel rail-card">
-            <span class="section-kicker">LinkedIn</span>
-            <h2>Collector</h2>
-            <p class="rail-note">Use this launcher on a LinkedIn search/results page to collect visible posts, auto-scroll, and download Excel.</p>
-            <button id="copy-linkedin-collector-button" class="icon-button" type="button">Copy launcher</button>
-            <pre id="linkedin-collector-launcher" class="bookmarklet-code">javascript:(()=&gt;{const s=document.createElement('script');s.src='http://localhost:3000/linkedin-collector.js?v='+Date.now();document.body.appendChild(s);})();</pre>
           </section>
 
           <section class="panel rail-card">

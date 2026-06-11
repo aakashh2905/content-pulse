@@ -746,22 +746,6 @@ select:focus {
   margin-top: 10px;
 }
 
-.run-actions {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 8px;
-  margin-top: 11px;
-}
-
-.export-button {
-  border-color: rgba(183, 255, 74, 0.22);
-}
-
-.export-button:not(:disabled):hover {
-  border-color: rgba(183, 255, 74, 0.48);
-  color: var(--lime);
-}
-
 .step-pill {
   min-height: 27px;
   padding: 6px 9px;
@@ -1218,27 +1202,6 @@ th {
 .rail-card {
   display: grid;
   gap: 12px;
-}
-
-.rail-note {
-  margin: 0;
-  color: var(--muted);
-  font-size: 0.84rem;
-  line-height: 1.45;
-}
-
-.bookmarklet-code {
-  max-height: 120px;
-  margin: 0;
-  padding: 10px;
-  overflow: auto;
-  border: 1px solid rgba(39, 215, 255, 0.14);
-  border-radius: 13px;
-  background: rgba(4, 9, 20, 0.72);
-  color: var(--muted-strong);
-  font: 0.72rem/1.45 "JetBrains Mono", monospace;
-  white-space: pre-wrap;
-  word-break: break-all;
 }
 
 .storage-status {

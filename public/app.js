@@ -26,12 +26,6 @@ const regionalGrid = document.querySelector("#regional-grid");
 const runSteps = document.querySelector("#run-steps");
 const copyScriptButton = document.querySelector("#copy-script-button");
 const copyHooksButton = document.querySelector("#copy-hooks-button");
-const copyLinkedInCollectorButton = document.querySelector("#copy-linkedin-collector-button");
-const linkedInCollectorLauncher = document.querySelector("#linkedin-collector-launcher");
-const downloadExcelButton = document.querySelector("#download-excel-button");
-const downloadReportButton = document.querySelector("#download-report-button");
-const downloadJsonButton = document.querySelector("#download-json-button");
-const exportButtons = [downloadExcelButton, downloadReportButton, downloadJsonButton].filter(Boolean);
 const runTargetLabels = {
   "run-all": "Run client insights",
   "content-scraper": "Find posts only",
@@ -73,7 +67,6 @@ const outputLanguageLabels = {
   arabic: "Arabic",
 };
 let latestCampaigns = [];
-let latestResult = null;
 
 function setText(element, value) {
   if (element) {
@@ -168,118 +161,6 @@ async function copyText(text, button) {
   setButtonFeedback(button, "Copied");
 }
 
-function setExportState(result) {
-  latestResult = result || null;
-  for (const button of exportButtons) {
-    button.disabled = !latestResult;
-    button.title = latestResult
-      ? `Download run ${latestResult.runId}`
-      : "Run client insights first, then download exports.";
-  }
-}
-
-async function readApiPayload(response) {
-  const contentType = response.headers.get("content-type") || "";
-  if (contentType.includes("application/json")) {
-    try {
-      return await response.json();
-    } catch {
-      return {
-        ok: response.ok,
-        error: `The server returned invalid JSON with HTTP ${response.status}.`,
-      };
-    }
-  }
-
-  const text = await response.text();
-  return {
-    ok: response.ok,
-    error: text || response.statusText || `HTTP ${response.status}`,
-  };
-}
-
-async function fetchJson(url, options) {
-  let response;
-  try {
-    response = await fetch(url, options);
-  } catch (error) {
-    throw new Error(`Cannot reach the local server. Start it with "npm start", refresh the page, and try again. ${error.message}`);
-  }
-
-  const payload = await readApiPayload(response);
-  if (!response.ok || payload.ok === false) {
-    throw new Error(payload.error || `Request failed with HTTP ${response.status}.`);
-  }
-
-  return payload;
-}
-
-function fileNameFromDisposition(header, fallback) {
-  if (!header) {
-    return fallback;
-  }
-
-  const utf8Match = header.match(/filename\*=UTF-8''([^;]+)/i);
-  if (utf8Match) {
-    return decodeURIComponent(utf8Match[1]);
-  }
-
-  const asciiMatch = header.match(/filename="([^"]+)"/i);
-  return asciiMatch ? asciiMatch[1] : fallback;
-}
-
-async function downloadRunExport(format, button) {
-  if (!latestResult?.runId) {
-    setButtonFeedback(button, "Run first");
-    runMeta.textContent = "Run client insights first. Exports are generated from the completed run.";
-    return;
-  }
-
-  const originalLabel = button.dataset.originalLabel || button.textContent;
-  button.dataset.originalLabel = originalLabel;
-  button.disabled = true;
-  button.textContent = "Preparing...";
-  let downloaded = false;
-
-  try {
-    let response;
-    try {
-      response = await fetch(`/api/runs/${encodeURIComponent(latestResult.runId)}/export?format=${encodeURIComponent(format)}`);
-    } catch (error) {
-      throw new Error(`Cannot reach the local server. Start it with "npm start", refresh the page, and try again. ${error.message}`);
-    }
-
-    if (!response.ok) {
-      const payload = await readApiPayload(response);
-      throw new Error(payload.error || `Download failed with HTTP ${response.status}.`);
-    }
-
-    const blob = await response.blob();
-    const fileName = fileNameFromDisposition(
-      response.headers.get("content-disposition"),
-      `aspi-content-pulse-${latestResult.runId}.${format === "excel" ? "xls" : format === "markdown" ? "md" : "json"}`,
-    );
-    const url = URL.createObjectURL(blob);
-    const link = document.createElement("a");
-    link.href = url;
-    link.download = fileName;
-    document.body.appendChild(link);
-    link.click();
-    link.remove();
-    URL.revokeObjectURL(url);
-    downloaded = true;
-    runMeta.textContent = `Downloaded ${fileName}.`;
-  } catch (error) {
-    runMeta.textContent = `Download failed: ${error.message}`;
-  } finally {
-    button.disabled = false;
-    button.textContent = originalLabel;
-    if (downloaded) {
-      setButtonFeedback(button, "Downloaded");
-    }
-  }
-}
-
 function renderBadges(status) {
   statusBadges.innerHTML = "";
   const entries = [
@@ -364,7 +245,11 @@ function renderSchedulerStatus(scheduler) {
 }
 
 async function loadStatus() {
-  const payload = await fetchJson("/api/health");
+  const response = await fetch("/api/health");
+  const payload = await response.json();
+  if (!payload.ok) {
+    throw new Error(payload.error || "Could not load runtime status.");
+  }
   renderBadges(payload.status);
   renderStorageStatus(payload.status.storage);
   renderSchedulerStatus(payload.status.scheduler);
@@ -397,7 +282,11 @@ function renderRunHistory(history) {
 }
 
 async function loadRunHistory() {
-  const payload = await fetchJson("/api/runs?limit=8");
+  const response = await fetch("/api/runs?limit=8");
+  const payload = await response.json();
+  if (!payload.ok) {
+    throw new Error(payload.error || "Could not load run history.");
+  }
   renderRunHistory(payload.history);
 }
 
@@ -430,7 +319,11 @@ function renderCampaigns(payload) {
 }
 
 async function loadCampaigns() {
-  const payload = await fetchJson("/api/campaigns");
+  const response = await fetch("/api/campaigns");
+  const payload = await response.json();
+  if (!payload.ok) {
+    throw new Error(payload.error || "Could not load campaigns.");
+  }
   renderCampaigns(payload.campaigns);
 }
 
@@ -771,13 +664,17 @@ async function saveCampaign() {
   saveCampaignButton.disabled = true;
   saveCampaignButton.textContent = "Saving...";
   try {
-    const payload = await fetchJson("/api/campaigns", {
+    const response = await fetch("/api/campaigns", {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
       },
       body: JSON.stringify(collectCampaignInput()),
     });
+    const payload = await response.json();
+    if (!payload.ok) {
+      throw new Error(payload.error || "Campaign save failed.");
+    }
     runMeta.textContent = `Campaign "${payload.campaign.name}" saved.`;
     await loadCampaigns();
     await loadStatus();
@@ -793,7 +690,11 @@ async function runDueCampaigns() {
   runDueButton.disabled = true;
   runDueButton.textContent = "Running...";
   try {
-    const payload = await fetchJson("/api/scheduler/run-due", { method: "POST" });
+    const response = await fetch("/api/scheduler/run-due", { method: "POST" });
+    const payload = await response.json();
+    if (!payload.ok) {
+      throw new Error(payload.error || "Scheduler run failed.");
+    }
     runMeta.textContent = `${payload.results.length} due campaign job(s) processed.`;
     renderSchedulerStatus(payload.scheduler);
     await loadCampaigns();
@@ -807,8 +708,7 @@ async function runDueCampaigns() {
 }
 
 async function handleCampaignAction(event) {
-  const target = event.target instanceof Element ? event.target : null;
-  const button = target?.closest("[data-campaign-action]");
+  const button = event.target.closest("[data-campaign-action]");
   if (!button) {
     return;
   }
@@ -820,9 +720,12 @@ async function handleCampaignAction(event) {
 
   try {
     if (action === "run") {
-      const payload = await fetchJson(`/api/campaigns/${encodeURIComponent(campaignId)}/run`, { method: "POST" });
+      const response = await fetch(`/api/campaigns/${encodeURIComponent(campaignId)}/run`, { method: "POST" });
+      const payload = await response.json();
+      if (!payload.ok) {
+        throw new Error(payload.error || "Campaign run failed.");
+      }
       runMeta.textContent = `Campaign run completed: ${payload.result.runId}.`;
-      setExportState(payload.result);
       renderAssumptions(payload.result.assumptions);
       renderIndustryBrief(payload.result.industryBrief);
       renderRegionalInsights(payload.result.validation);
@@ -836,18 +739,26 @@ async function handleCampaignAction(event) {
 
     if (action === "toggle") {
       const nextStatus = campaign?.status === "active" ? "paused" : "active";
-      const payload = await fetchJson(`/api/campaigns/${encodeURIComponent(campaignId)}`, {
+      const response = await fetch(`/api/campaigns/${encodeURIComponent(campaignId)}`, {
         method: "PATCH",
         headers: {
           "Content-Type": "application/json",
         },
         body: JSON.stringify({ status: nextStatus }),
       });
+      const payload = await response.json();
+      if (!payload.ok) {
+        throw new Error(payload.error || "Campaign update failed.");
+      }
       runMeta.textContent = `Campaign "${payload.campaign.name}" is ${payload.campaign.status}.`;
     }
 
     if (action === "delete") {
-      await fetchJson(`/api/campaigns/${encodeURIComponent(campaignId)}`, { method: "DELETE" });
+      const response = await fetch(`/api/campaigns/${encodeURIComponent(campaignId)}`, { method: "DELETE" });
+      const payload = await response.json();
+      if (!payload.ok) {
+        throw new Error(payload.error || "Campaign delete failed.");
+      }
       runMeta.textContent = "Campaign deleted.";
     }
 
@@ -863,30 +774,25 @@ async function handleCampaignAction(event) {
 
 async function runPipeline(event) {
   event.preventDefault();
-  const input = collectFormInput();
-  if (!input.keywords.length && !input.topicOverride) {
-    setRunSteps("error");
-    runMeta.textContent = "Add at least one keyword before running. Example: AI marketing, skincare routine, lead generation.";
-    return;
-  }
-
-  setExportState(null);
   submitButton.disabled = true;
   submitButton.textContent = "Running...";
   setRunSteps("running");
   runMeta.textContent = "Finding live Instagram signals and building the client brief...";
 
   try {
-    const payload = await fetchJson("/api/run", {
+    const response = await fetch("/api/run", {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
       },
-      body: JSON.stringify(input),
+      body: JSON.stringify(collectFormInput()),
     });
+    const payload = await response.json();
+    if (!payload.ok) {
+      throw new Error(payload.error || "Pipeline run failed.");
+    }
 
     const { result } = payload;
-    setExportState(result);
     renderSetupPreview(result.request);
     setRunSteps("complete");
     const stageLabel = runTargetLabels[result.request.runTarget] || "Selected skill";
@@ -912,7 +818,7 @@ async function runPipeline(event) {
     renderRegionalInsights(null);
   } finally {
     submitButton.disabled = false;
-    submitButton.textContent = runTargetLabels[input.runTarget] || "Run Selected Skill";
+    submitButton.textContent = runTargetLabels[collectFormInput().runTarget] || "Run Selected Skill";
   }
 }
 
@@ -921,14 +827,13 @@ saveCampaignButton.addEventListener("click", saveCampaign);
 runDueButton.addEventListener("click", runDueCampaigns);
 campaignList.addEventListener("click", handleCampaignAction);
 form.addEventListener("click", (event) => {
-  const target = event.target instanceof Element ? event.target : null;
-  const keywordButton = target?.closest("[data-keyword]");
+  const keywordButton = event.target.closest("[data-keyword]");
   if (keywordButton) {
     document.querySelector("#keywords").value = keywordButton.dataset.keyword;
     renderSetupPreview(collectFormInput());
   }
 
-  const regionButton = target?.closest("[data-region]");
+  const regionButton = event.target.closest("[data-region]");
   if (regionButton) {
     document.querySelector("#targetRegion").value = regionButton.dataset.region;
     document.querySelector("#customRegion").value = "";
@@ -940,16 +845,9 @@ form.addEventListener("input", () => {
 });
 copyScriptButton?.addEventListener("click", () => copyText(scriptOutput.textContent, copyScriptButton));
 copyHooksButton?.addEventListener("click", () => copyText(hooksList.innerText || recommendedHook.textContent, copyHooksButton));
-copyLinkedInCollectorButton?.addEventListener("click", () =>
-  copyText(linkedInCollectorLauncher.textContent, copyLinkedInCollectorButton),
-);
-downloadExcelButton?.addEventListener("click", () => downloadRunExport("excel", downloadExcelButton));
-downloadReportButton?.addEventListener("click", () => downloadRunExport("markdown", downloadReportButton));
-downloadJsonButton?.addEventListener("click", () => downloadRunExport("json", downloadJsonButton));
 
 renderSetupPreview(collectFormInput());
 setRunSteps("idle");
-setExportState(null);
 loadStatus().catch((error) => {
   runMeta.textContent = `Status check failed: ${error.message}`;
 });
